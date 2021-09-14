@@ -759,7 +759,7 @@ export const ReactEditor = {
       isDOMElement(focusNode) &&
       Editor.void(editor, { at: range.focus, mode: 'highest' })
     ) {
-      range = Editor.unhangRange(editor, range, { voids: true })
+      range = Editor.unhangRange(editor, range)
     }
 
     return (range as unknown) as T extends true ? Range | null : Range

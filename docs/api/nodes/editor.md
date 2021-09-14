@@ -269,7 +269,7 @@ Remove a custom property from all of the leaf text nodes in the current selectio
 
 If the selection is currently collapsed, the removal will be stored on `editor.marks` and applied to the text inserted next.
 
-#### `Editor.unhangRange(editor: Editor, range: Range, options?) => Range`
+#### `Editor.unhangRange(editor: Editor, range: Range) => Range`
 
 Convert a range into a non-hanging one.
 
