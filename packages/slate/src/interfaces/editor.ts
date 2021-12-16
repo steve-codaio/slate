@@ -18,6 +18,7 @@ import {
 } from '..'
 import {
   DIRTY_PATHS,
+  DIRTY_PATH_KEYS,
   NORMALIZING,
   PATH_REFS,
   POINT_REFS,
@@ -972,13 +973,26 @@ export const Editor: EditorInterface = {
       return DIRTY_PATHS.get(editor) || []
     }
 
+    const getDirtyPathKeys = (editor: Editor) => {
+      return DIRTY_PATH_KEYS.get(editor) || new Set()
+    }
+
+    const popDirtyPath = (editor: Editor): Path => {
+      const path = getDirtyPaths(editor).pop()!
+      const key = path.join(',')
+      getDirtyPathKeys(editor).delete(key)
+      return path
+    }
+
     if (!Editor.isNormalizing(editor)) {
       return
     }
 
     if (force) {
       const allPaths = Array.from(Node.nodes(editor), ([, p]) => p)
+      const allPathKeys = new Set(allPaths.map(p => p.join(',')))
       DIRTY_PATHS.set(editor, allPaths)
+      DIRTY_PATH_KEYS.set(editor, allPathKeys)
     }
 
     if (getDirtyPaths(editor).length === 0) {
@@ -1019,7 +1033,7 @@ export const Editor: EditorInterface = {
           `)
         }
 
-        const dirtyPath = getDirtyPaths(editor).pop()!
+        const dirtyPath = popDirtyPath(editor)
 
         // If the node doesn't exist in the tree, it does not need to be normalized.
         if (Node.has(editor, dirtyPath)) {
