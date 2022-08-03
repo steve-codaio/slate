@@ -6,6 +6,7 @@ export const input = (
     <block>
       <text>not empty</text>
       <text a />
+      <cursor />
       <inline>inline</inline>
       <text />
     </block>
@@ -14,7 +15,10 @@ export const input = (
 export const output = (
   <editor>
     <block>
-      <text>not empty</text>
+      <text>
+        not empty
+        <cursor />
+      </text>
       <inline>inline</inline>
       <text />
     </block>
