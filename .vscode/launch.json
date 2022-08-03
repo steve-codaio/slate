@@ -1,0 +1,22 @@
+{
+  "configurations": [
+    {
+      "type": "node",
+      "name": "Core slate test",
+      "request": "launch",
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}",
+      "runtimeExecutable": "yarn",
+      "args": ["test:custom", "--grep=${fileBasenameNoExtension}"]
+    },
+    {
+      "type": "node",
+      "name": "All core slate tests (slate/test/index.js)",
+      "request": "launch",
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}",
+      "runtimeExecutable": "yarn",
+      "args": ["test:custom"]
+    }
+  ]
+}

@@ -150,11 +150,23 @@ const applyToDraft = (editor: Editor, selection: Selection, op: Operation) => {
               }
             }
 
+            // When the cursor's location is removed, generally we move the cursor back one position, except
+            // that we prioritize keeping the cursor on a direct sibling in where possible.
             let preferNext = false
             if (prev && next) {
-              if (Path.equals(next[1], path)) {
+              // If the removed node had a previous sibling, always prefer that.
+              if (Path.isSibling(prev[1], path)) {
+                preferNext = false
+              }
+              // If the subsequent node is exactly where the removed node was, then they were siblings. If
+              // it's the beginning of its containing block, leave the cursor there rather than move it
+              // backwards out of that block.
+              else if (Path.equals(next[1], path)) {
                 preferNext = !Path.hasPrevious(next[1])
-              } else {
+              }
+              // If neither prev or next are siblings of the removed node, then prefer whichever has the
+              // longest common path.
+              else {
                 preferNext =
                   Path.common(prev[1], path).length <
                   Path.common(next[1], path).length
