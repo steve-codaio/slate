@@ -1,5 +1,35 @@
+# Coda fork of slate
+This repo is coda's fork of the base slate repo.
+
+Coda depends (indirectly) on the `sgm-patched-code` branch in this repo, which is originally forked from the `0.66.0` upstream version.
+
+## How to patch Coda's version of slate
+
+Steps:
+
+1. Clone this repo, and then start a work branch that is based off the `sgm-patched-code` branch.  Implement your fix, and add tests.
+1. Run `yarn prerelease` to generate the `dist/` directory.
+1. Clone your newly generated `dist/` over to your coda repo: 
+
+    ```console
+    ditto <slate_repo_root>/packages/slate/dist <coda_repo_root>/node_modules/slate/dist
+    ```
+    
+1. Generate the patch file in your coda repo:
+
+    ```console
+    coda_repo:~$ patch-package slate
+    ```
+    
+1. Validate your fix in Coda. Make sure to run `make clean-webpack && make dev` to ensure that the new `node_modules` code is picked up by your dev server.
+1. Once you are confident in the fix, send a PR in this repo to merge your changes into the `sgm-patched-code` branch.
+1. Once that PR is merged, send a PR to merge the new patch file into the Coda repo.
+1. If it makes sense, also send a PR to merge your fix into the upstream repo.
+
+<hr>
+
 <p align="center">
-  <a href="#"><img src="./docs/images/banner.png" /></a>
+  <img src="./docs/images/banner.png" />
 </p>
 
 <p align="center">
