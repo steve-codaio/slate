@@ -24,5 +24,5 @@ export const test = editor => {
 
 export const output = {
   anchor: { path: [0, 0], offset: 6 },
-  focus: { path: [0, 2], offset: 0 },
+  focus: { path: [0, 1], offset: 8 },
 }
