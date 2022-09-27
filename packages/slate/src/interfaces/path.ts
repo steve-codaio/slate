@@ -369,129 +369,140 @@ export const Path: PathInterface = {
    */
 
   transform(
-    path: Path | null,
+    inputPath: Path | null,
     operation: Operation,
     options: PathTransformOptions = {}
   ): Path | null {
-    return produce(path, p => {
-      const { affinity = 'forward' } = options
+    const { affinity = 'forward' } = options
 
-      // PERF: Exit early if the operation is guaranteed not to have an effect.
-      if (!path || path?.length === 0) {
-        return
-      }
+    // PERF: Exit early if the operation is guaranteed not to have an effect.
+    if (!inputPath || inputPath?.length === 0) {
+      return inputPath
+    }
 
-      if (p === null) {
-        return null
-      }
+    // Implements copy-on-write semantics without immer
+    let path = inputPath
+    const willModify = () => {
+      path = [...path]
+    }
 
-      switch (operation.type) {
-        case 'insert_node': {
-          const { path: op } = operation
+    switch (operation.type) {
+      case 'insert_node': {
+        const { path: op } = operation
 
-          if (
-            Path.equals(op, p) ||
-            Path.endsBefore(op, p) ||
-            Path.isAncestor(op, p)
-          ) {
-            p[op.length - 1] += 1
-          }
-
-          break
+        if (
+          Path.equals(op, path) ||
+          Path.endsBefore(op, path) ||
+          Path.isAncestor(op, path)
+        ) {
+          willModify()
+          path[op.length - 1] += 1
         }
 
-        case 'remove_node': {
-          const { path: op } = operation
+        break
+      }
 
-          if (Path.equals(op, p) || Path.isAncestor(op, p)) {
+      case 'remove_node': {
+        const { path: op } = operation
+
+        if (Path.equals(op, path) || Path.isAncestor(op, path)) {
+          return null
+        } else if (Path.endsBefore(op, path)) {
+          willModify()
+          path[op.length - 1] -= 1
+        }
+
+        break
+      }
+
+      case 'merge_node': {
+        const { path: op, position } = operation
+
+        if (Path.equals(op, path) || Path.endsBefore(op, path)) {
+          willModify()
+          path[op.length - 1] -= 1
+        } else if (Path.isAncestor(op, path)) {
+          willModify()
+          path[op.length - 1] -= 1
+          path[op.length] += position
+        }
+
+        break
+      }
+
+      case 'split_node': {
+        const { path: op, position } = operation
+
+        if (Path.equals(op, path)) {
+          if (affinity === 'forward') {
+            willModify()
+            path[path.length - 1] += 1
+          } else if (affinity === 'backward') {
+            // Nothing, because it still refers to the right path.
+          } else {
             return null
-          } else if (Path.endsBefore(op, p)) {
-            p[op.length - 1] -= 1
           }
-
-          break
+        } else if (Path.endsBefore(op, path)) {
+          willModify()
+          path[op.length - 1] += 1
+        } else if (Path.isAncestor(op, path) && path[op.length] >= position) {
+          willModify()
+          path[op.length - 1] += 1
+          path[op.length] -= position
         }
 
-        case 'merge_node': {
-          const { path: op, position } = operation
-
-          if (Path.equals(op, p) || Path.endsBefore(op, p)) {
-            p[op.length - 1] -= 1
-          } else if (Path.isAncestor(op, p)) {
-            p[op.length - 1] -= 1
-            p[op.length] += position
-          }
-
-          break
-        }
-
-        case 'split_node': {
-          const { path: op, position } = operation
-
-          if (Path.equals(op, p)) {
-            if (affinity === 'forward') {
-              p[p.length - 1] += 1
-            } else if (affinity === 'backward') {
-              // Nothing, because it still refers to the right path.
-            } else {
-              return null
-            }
-          } else if (Path.endsBefore(op, p)) {
-            p[op.length - 1] += 1
-          } else if (Path.isAncestor(op, p) && path[op.length] >= position) {
-            p[op.length - 1] += 1
-            p[op.length] -= position
-          }
-
-          break
-        }
-
-        case 'move_node': {
-          const { path: op, newPath: onp } = operation
-
-          // If the old and new path are the same, it's a no-op.
-          if (Path.equals(op, onp)) {
-            return
-          }
-
-          if (Path.isAncestor(op, p) || Path.equals(op, p)) {
-            const copy = onp.slice()
-
-            if (Path.endsBefore(op, onp) && op.length < onp.length) {
-              copy[op.length - 1] -= 1
-            }
-
-            return copy.concat(p.slice(op.length))
-          } else if (
-            Path.isSibling(op, onp) &&
-            (Path.isAncestor(onp, p) || Path.equals(onp, p))
-          ) {
-            if (Path.endsBefore(op, p)) {
-              p[op.length - 1] -= 1
-            } else {
-              p[op.length - 1] += 1
-            }
-          } else if (
-            Path.endsBefore(onp, p) ||
-            Path.equals(onp, p) ||
-            Path.isAncestor(onp, p)
-          ) {
-            if (Path.endsBefore(op, p)) {
-              p[op.length - 1] -= 1
-            }
-
-            p[onp.length - 1] += 1
-          } else if (Path.endsBefore(op, p)) {
-            if (Path.equals(onp, p)) {
-              p[onp.length - 1] += 1
-            }
-
-            p[op.length - 1] -= 1
-          }
-
-          break
-        }
+        break
       }
-    })
+
+      case 'move_node': {
+        const { path: op, newPath: onp } = operation
+
+        // If the old and new path are the same, it's a no-op.
+        if (Path.equals(op, onp)) {
+          return path
+        }
+
+        if (Path.isAncestor(op, path) || Path.equals(op, path)) {
+          const copy = onp.slice()
+
+          if (Path.endsBefore(op, onp) && op.length < onp.length) {
+            copy[op.length - 1] -= 1
+          }
+
+          return copy.concat(path.slice(op.length))
+        } else if (
+          Path.isSibling(op, onp) &&
+          (Path.isAncestor(onp, path) || Path.equals(onp, path))
+        ) {
+          willModify()
+          if (Path.endsBefore(op, path)) {
+            path[op.length - 1] -= 1
+          } else {
+            path[op.length - 1] += 1
+          }
+        } else if (
+          Path.endsBefore(onp, path) ||
+          Path.equals(onp, path) ||
+          Path.isAncestor(onp, path)
+        ) {
+          willModify()
+          if (Path.endsBefore(op, path)) {
+            path[op.length - 1] -= 1
+          }
+
+          path[onp.length - 1] += 1
+        } else if (Path.endsBefore(op, path)) {
+          willModify()
+          if (Path.equals(onp, path)) {
+            path[onp.length - 1] += 1
+          }
+
+          path[op.length - 1] -= 1
+        }
+
+        break
+      }
+    }
+    return path
   },
 }
