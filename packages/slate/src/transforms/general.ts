@@ -161,11 +161,10 @@ const applyToDraft = (editor: Editor, selection: Selection, op: Operation) => {
               if (Path.isSibling(prev[1], path)) {
                 preferNext = false
               }
-              // If the subsequent node is exactly where the removed node was, then they were siblings. If
-              // it's the beginning of its containing block, leave the cursor there rather than move it
-              // backwards out of that block.
+              // If the subsequent node is exactly where the removed node was, then they were siblings. Since we
+              // know that the previous node is not a sibling, prefer it
               else if (Path.equals(next[1], path)) {
-                preferNext = !Path.hasPrevious(next[1])
+                preferNext = true
               }
               // If neither prev or next are siblings of the removed node, then prefer whichever has the
               // longest common path.
