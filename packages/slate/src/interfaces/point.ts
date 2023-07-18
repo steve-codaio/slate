@@ -1,4 +1,3 @@
-import { isPlainObject } from 'is-plain-object'
 import { produce } from 'immer'
 import { ExtendedType, Operation, Path } from '..'
 import { TextDirection } from './types'
@@ -85,10 +84,8 @@ export const Point: PointInterface = {
    */
 
   isPoint(value: any): value is Point {
-    return (
-      isPlainObject(value) &&
-      typeof value.offset === 'number' &&
-      Path.isPath(value.path)
+    return Boolean(
+      value && typeof value.offset === 'number' && Path.isPath(value.path)
     )
   },
 

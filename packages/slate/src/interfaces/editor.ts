@@ -603,7 +603,7 @@ export const Editor: EditorInterface = {
       return cachedIsEditor
     }
 
-    if (!isPlainObject(value)) {
+    if (typeof value !== 'object') {
       return false
     }
 

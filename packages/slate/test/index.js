@@ -2,11 +2,12 @@ import assert from 'assert'
 import { fixtures } from '../../../support/fixtures'
 import { Editor } from 'slate'
 import { createHyperscript } from 'slate-hyperscript'
+import { isPlainObject } from 'is-plain-object'
 
 describe('slate', () => {
   fixtures(__dirname, 'interfaces', ({ module }) => {
     let { input, test, output } = module
-    if (Editor.isEditor(input)) {
+    if (isPlainObject(input) && Editor.isEditor(input)) {
       input = withTest(input)
     }
     const result = test(input)

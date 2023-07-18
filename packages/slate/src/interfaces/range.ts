@@ -1,5 +1,4 @@
 import { produce } from 'immer'
-import { isPlainObject } from 'is-plain-object'
 import { ExtendedType, Operation, Path, Point, PointEntry } from '..'
 import { RangeDirection } from './types'
 
@@ -175,10 +174,8 @@ export const Range: RangeInterface = {
    */
 
   isRange(value: any): value is Range {
-    return (
-      isPlainObject(value) &&
-      Point.isPoint(value.anchor) &&
-      Point.isPoint(value.focus)
+    return Boolean(
+      value && Point.isPoint(value.anchor) && Point.isPoint(value.focus)
     )
   },
 

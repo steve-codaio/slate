@@ -1,4 +1,3 @@
-import { isPlainObject } from 'is-plain-object'
 import { Editor, Node, Path, Descendant, ExtendedType, Ancestor } from '..'
 
 /**
@@ -30,10 +29,8 @@ export interface ElementInterface {
  * Shared the function with isElementType utility
  */
 const isElement = (value: any): value is Element => {
-  return (
-    isPlainObject(value) &&
-    Node.isNodeList(value.children) &&
-    !Editor.isEditor(value)
+  return Boolean(
+    value && Node.isNodeList(value.children) && !Editor.isEditor(value)
   )
 }
 
@@ -44,7 +41,7 @@ export const Element: ElementInterface = {
    */
 
   isAncestor(value: any): value is Ancestor {
-    return isPlainObject(value) && Node.isNodeList(value.children)
+    return Node.isNodeList(value.children)
   },
 
   /**
