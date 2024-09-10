@@ -12,17 +12,12 @@ function generateForRange(
 }
 
 export const PUNCTUATION_MAP: { [key: string]: true } = {
-  ...generateForRange('\u0021', '\u0023'),
-  ...generateForRange('\u0025', '\u002A'),
-  ...generateForRange('\u002C', '\u002F'),
-  '\u003A': true,
-  '\u003B': true,
-  '\u003F': true,
-  '\u0040': true,
-  ...generateForRange('\u005B', '\u005D'),
-  '\u005F': true,
-  '\u007B': true,
-  '\u007D': true,
+  // Typical puncutation per https://en.wikipedia.org/wiki/List_of_Unicode_characters#Basic_Latin
+  ...generateForRange('\u0021', '\u002F'),
+  ...generateForRange('\u003A', '\u0040'),
+  ...generateForRange('\u005B', '\u0060'),
+  ...generateForRange('\u007B', '\u007E'),
+
   '\u00A1': true,
   '\u00A7': true,
   '\u00AB': true,
